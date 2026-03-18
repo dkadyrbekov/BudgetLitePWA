@@ -1,4 +1,4 @@
-import type { BudgetCategory } from "@/lib/mock-data";
+import type { BudgetCategory } from "@/lib/types";
 
 type CategoryGridProps = {
   categories: BudgetCategory[];
