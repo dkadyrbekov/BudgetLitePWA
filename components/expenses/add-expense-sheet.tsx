@@ -123,7 +123,7 @@ export function AddExpenseSheet({
       </button>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/40 sm:items-center sm:justify-center sm:p-4">
+        <div className="fixed inset-0 z-50 bg-black/40 sm:flex sm:items-center sm:justify-center sm:p-4">
           <button
             type="button"
             aria-label="Close add expense sheet"
@@ -135,11 +135,11 @@ export function AddExpenseSheet({
             role="dialog"
             aria-modal="true"
             aria-labelledby="add-expense-title"
-            className="relative z-10 flex max-h-[calc(100dvh-0.75rem)] w-full flex-col overflow-hidden rounded-t-[2rem] bg-[var(--background)] px-4 pb-5 pt-3 shadow-2xl sm:max-h-[min(100dvh-2rem,56rem)] sm:max-w-lg sm:rounded-[2rem]"
+            className="absolute inset-x-0 bottom-0 z-10 flex h-[92dvh] w-full flex-col overflow-hidden rounded-t-[2rem] bg-[var(--background)] pt-3 shadow-2xl sm:static sm:h-[min(90dvh,56rem)] sm:max-w-lg sm:rounded-[2rem]"
           >
             <div className="mx-auto h-1.5 w-14 rounded-full bg-black/10" />
 
-            <div className="mt-4 flex items-start justify-between gap-4">
+            <div className="mt-4 flex items-start justify-between gap-4 px-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
                   Fast entry
@@ -161,8 +161,11 @@ export function AddExpenseSheet({
               </button>
             </div>
 
-            <form className="mt-5 flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
-              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
+            <form
+              className="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden"
+              onSubmit={handleSubmit}
+            >
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-4">
                 <label className="block space-y-2">
                   <span className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
                     Amount
@@ -272,7 +275,7 @@ export function AddExpenseSheet({
                 ) : null}
               </div>
 
-              <div className="-mx-4 border-t border-black/10 bg-[var(--background)] px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4">
+              <div className="border-t border-black/10 bg-[var(--background)] px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4">
                 <button
                   type="submit"
                   disabled={!canSave || isPending || categories.length === 0}
