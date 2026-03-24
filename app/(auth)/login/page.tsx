@@ -1,7 +1,8 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { getCurrentUser } from "@/lib/supabase/auth";
-import { getBaseUrl } from "@/lib/env";
+import { getRequestBaseUrl } from "@/lib/env";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -17,6 +18,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect("/dashboard");
   }
 
+  const headersList = await headers();
+  const baseUrl = getRequestBaseUrl(headersList);
   const query = await searchParams;
   const error =
     typeof query.error === "string"
@@ -38,7 +41,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
 
         <div className="mt-6">
-          <LoginForm redirectTo={`${getBaseUrl()}/auth/callback?next=/dashboard`} />
+          <LoginForm redirectTo={`${baseUrl}/auth/callback?next=/dashboard`} />
         </div>
 
         {sent ? (

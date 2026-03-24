@@ -25,3 +25,17 @@ export function getBaseUrl() {
     "http://localhost:3000"
   );
 }
+
+export function getRequestBaseUrl(headersList: Headers) {
+  const forwardedHost = headersList.get("x-forwarded-host");
+  const host = forwardedHost ?? headersList.get("host");
+
+  if (!host) {
+    return getBaseUrl();
+  }
+
+  const forwardedProto = headersList.get("x-forwarded-proto");
+  const protocol = forwardedProto ?? (host.includes("localhost") ? "http" : "https");
+
+  return `${protocol}://${host}`;
+}
