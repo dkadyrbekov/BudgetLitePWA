@@ -1,7 +1,6 @@
 "use client";
 
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
+import emojiData from "@emoji-mart/data";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCategory, updateCategory } from "@/lib/actions/categories";
@@ -14,6 +13,32 @@ type CategorySheetProps = {
   category?: CategoryListItem;
 };
 
+type EmojiEntry = {
+  id: string;
+  emoji: string;
+  name: string;
+  keywords: string[];
+};
+
+type EmojiCategory = {
+  id: string;
+  label: string;
+  emojis: EmojiEntry[];
+};
+
+const EMOJI_CATEGORY_LABELS: Record<string, string> = {
+  people: "Smileys & People",
+  nature: "Animals & Nature",
+  foods: "Food & Drink",
+  activity: "Activities",
+  places: "Travel & Places",
+  objects: "Objects",
+  symbols: "Symbols",
+  flags: "Flags",
+};
+
+const EMOJI_CATEGORIES = buildEmojiCategories();
+
 export function CategorySheet({
   mode = "create",
   triggerClassName,
@@ -25,10 +50,36 @@ export function CategorySheet({
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [name, setName] = useState(category?.name || "");
   const [icon, setIcon] = useState(category?.icon || "");
+  const [search, setSearch] = useState("");
+  const [activeCategoryId, setActiveCategoryId] = useState(EMOJI_CATEGORIES[0]?.id ?? "people");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const canSave = useMemo(() => name.trim().length > 0 && icon.trim().length > 0, [icon, name]);
+  const canSave = useMemo(
+    () => name.trim().length > 0 && icon.trim().length > 0,
+    [icon, name],
+  );
+
+  const filteredCategories = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    if (!query) {
+      return EMOJI_CATEGORIES;
+    }
+
+    return EMOJI_CATEGORIES.map((category) => ({
+      ...category,
+      emojis: category.emojis.filter((emoji) => {
+        const haystack = `${emoji.name} ${emoji.keywords.join(" ")}`.toLowerCase();
+        return haystack.includes(query);
+      }),
+    })).filter((category) => category.emojis.length > 0);
+  }, [search]);
+
+  const visibleCategoryId =
+    filteredCategories.find((category) => category.id === activeCategoryId)?.id ??
+    filteredCategories[0]?.id ??
+    activeCategoryId;
 
   useEffect(() => {
     if (!isOpen) {
@@ -46,6 +97,8 @@ export function CategorySheet({
   function openSheet() {
     setName(category?.name || "");
     setIcon(category?.icon || "");
+    setSearch("");
+    setActiveCategoryId(EMOJI_CATEGORIES[0]?.id ?? "people");
     setIsEmojiPickerOpen(false);
     setError(null);
     setIsOpen(true);
@@ -58,19 +111,23 @@ export function CategorySheet({
 
     setIsOpen(false);
     setIsEmojiPickerOpen(false);
+    setSearch("");
     setError(null);
   }
 
   function resetForm() {
     setName("");
     setIcon("");
+    setSearch("");
+    setActiveCategoryId(EMOJI_CATEGORIES[0]?.id ?? "people");
     setIsEmojiPickerOpen(false);
     setError(null);
   }
 
-  function handleEmojiClick(emojiData: { native: string }) {
-    setIcon(emojiData.native);
+  function handleEmojiSelect(value: string) {
+    setIcon(value);
     setIsEmojiPickerOpen(false);
+    setSearch("");
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -248,27 +305,110 @@ export function CategorySheet({
               </div>
             </header>
 
-            <div className="min-h-0 flex-1 p-3">
-              <Picker
-                data={data}
-                onEmojiSelect={handleEmojiClick}
-                theme="light"
-                emojiSize={22}
-                emojiButtonSize={40}
-                previewPosition="none"
-                searchPosition="sticky"
-                navPosition="top"
-                perLine={8}
-                maxFrequentRows={1}
-                skinTonePosition="none"
-                set="native"
-                locale="en"
-                autoFocus
+            <div className="border-b border-black/10 bg-white px-4 py-3">
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search emoji"
+                className="h-12 w-full rounded-2xl border border-black/10 bg-zinc-50 px-4 text-sm text-black outline-none"
               />
+            </div>
+
+            <div className="border-b border-black/10 bg-white px-3 py-2">
+              <div className="flex gap-2 overflow-x-auto">
+                {filteredCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => setActiveCategoryId(category.id)}
+                    className={`shrink-0 rounded-full px-3 py-2 text-xs font-medium transition ${
+                      visibleCategoryId === category.id
+                        ? "bg-black text-white"
+                        : "bg-zinc-100 text-zinc-700"
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-4">
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map((category) =>
+                  category.id === visibleCategoryId ? (
+                    <section key={category.id}>
+                      <p className="mb-3 text-sm font-semibold text-black">
+                        {category.label}
+                      </p>
+                      <div className="grid grid-cols-6 gap-2">
+                        {category.emojis.map((emoji) => (
+                          <button
+                            key={emoji.id}
+                            type="button"
+                            onClick={() => handleEmojiSelect(emoji.emoji)}
+                            className={`flex h-12 items-center justify-center rounded-2xl border text-2xl transition ${
+                              icon === emoji.emoji
+                                ? "border-black bg-black text-white"
+                                : "border-black/10 bg-white"
+                            }`}
+                            title={emoji.name}
+                          >
+                            {emoji.emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  ) : null,
+                )
+              ) : (
+                <div className="rounded-2xl bg-white px-4 py-5 text-center text-sm text-zinc-600">
+                  No emojis found for that search.
+                </div>
+              )}
             </div>
           </div>
         </div>
       ) : null}
     </>
   );
+}
+
+function buildEmojiCategories(): EmojiCategory[] {
+  const data = emojiData as {
+    categories: Array<{ id: string; emojis: string[] }>;
+    emojis: Record<
+      string,
+      {
+        id: string;
+        name: string;
+        keywords?: string[];
+        skins: Array<{ native: string }>;
+      }
+    >;
+  };
+
+  return data.categories
+    .map((category) => ({
+      id: category.id,
+      label: EMOJI_CATEGORY_LABELS[category.id] ?? category.id,
+      emojis: category.emojis
+        .map((emojiId) => {
+          const emoji = data.emojis[emojiId];
+
+          if (!emoji?.skins?.[0]?.native) {
+            return null;
+          }
+
+          return {
+            id: emoji.id,
+            emoji: emoji.skins[0].native,
+            name: emoji.name,
+            keywords: emoji.keywords ?? [],
+          };
+        })
+        .filter((emoji): emoji is EmojiEntry => emoji !== null),
+    }))
+    .filter((category) => category.emojis.length > 0);
 }
