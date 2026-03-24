@@ -50,7 +50,10 @@ export async function createExpense(
     .single();
 
   if (categoryError || !category) {
-    return { ok: false, error: "Selected category was not found." };
+    return {
+      ok: false,
+      error: categoryError?.message || "Selected category was not found.",
+    };
   }
 
   const { error: insertError } = await supabase.from("expenses").insert({
@@ -64,7 +67,10 @@ export async function createExpense(
   });
 
   if (insertError) {
-    return { ok: false, error: "Could not save the expense." };
+    return {
+      ok: false,
+      error: insertError.message || "Could not save the expense.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -110,7 +116,10 @@ export async function updateExpense(
     .single();
 
   if (categoryError || !category) {
-    return { ok: false, error: "Selected category was not found." };
+    return {
+      ok: false,
+      error: categoryError?.message || "Selected category was not found.",
+    };
   }
 
   const { error: updateError } = await supabase
@@ -127,7 +136,10 @@ export async function updateExpense(
     .eq("id", expenseId);
 
   if (updateError) {
-    return { ok: false, error: "Could not update the expense." };
+    return {
+      ok: false,
+      error: updateError.message || "Could not update the expense.",
+    };
   }
 
   revalidatePath("/dashboard");
@@ -155,7 +167,7 @@ export async function deleteExpense(id: string): Promise<CreateExpenseResult> {
   const { error } = await supabase.from("expenses").delete().eq("id", expenseId);
 
   if (error) {
-    return { ok: false, error: "Could not delete the expense." };
+    return { ok: false, error: error.message || "Could not delete the expense." };
   }
 
   revalidatePath("/dashboard");
