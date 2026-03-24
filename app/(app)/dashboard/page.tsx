@@ -1,11 +1,5 @@
-import { PlaceholderSection } from "@/components/app/placeholder-section";
+import { DashboardOverview } from "@/components/app/dashboard-overview";
 
 export default function DashboardPage() {
-  return (
-    <PlaceholderSection
-      eyebrow="Phase 1"
-      title="Dashboard"
-      description="Protected placeholder for the main budget overview."
-    />
-  );
+  return <DashboardOverview />;
 }
