@@ -26,7 +26,28 @@ body {
   font-family: var(--font-sans);
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #71717a;
+}
+
+button {
+  touch-action: manipulation;
 }

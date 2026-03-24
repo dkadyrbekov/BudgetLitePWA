@@ -11,15 +11,22 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const trimmedEmail = email.trim();
+  const isValidEmail = /\S+@\S+\.\S+/.test(trimmedEmail);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
+    if (!isValidEmail) {
+      setError("Enter a valid email address.");
+      return;
+    }
+
     startTransition(async () => {
       const supabase = createBrowserSupabaseClient();
       const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
+        email: trimmedEmail,
         options: {
           emailRedirectTo: redirectTo,
         },
@@ -51,7 +58,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || !isValidEmail}
         className="flex h-12 w-full items-center justify-center rounded-2xl bg-black px-4 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPending ? "Sending link..." : "Send magic link"}

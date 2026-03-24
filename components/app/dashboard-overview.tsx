@@ -1,5 +1,9 @@
-import Link from "next/link";
 import { getDashboardData } from "@/lib/dashboard";
+import { getExpenseCategories } from "@/lib/expenses";
+import { getIncomeList } from "@/lib/incomes";
+import { AddExpenseSheet } from "@/components/expenses/add-expense-sheet";
+import { DeleteIncomeButton } from "@/components/incomes/delete-income-button";
+import { IncomeSheet } from "@/components/incomes/income-sheet";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -14,6 +18,8 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 
 export async function DashboardOverview() {
   const data = await getDashboardData();
+  const categories = await getExpenseCategories();
+  const incomes = await getIncomeList();
 
   return (
     <div className="flex min-h-full flex-col">
@@ -100,39 +106,80 @@ export async function DashboardOverview() {
             </div>
           )}
         </section>
+
+        <section className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
+                Incomes
+              </p>
+              <h2 className="mt-2 text-xl font-semibold tracking-tight text-black">
+                Income entries
+              </h2>
+            </div>
+          </div>
+
+          {incomes.length > 0 ? (
+            <div className="mt-4 space-y-3">
+              {incomes.map((income) => (
+                <article
+                  key={income.id}
+                  className="rounded-2xl bg-zinc-50 px-4 py-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-sm font-semibold text-emerald-700">
+                      IN
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-black">
+                        {income.description || "Income"}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {formatDate(income.income_date)}
+                      </p>
+                    </div>
+
+                    <p className="text-sm font-semibold text-emerald-700">
+                      +{formatCurrency(income.amount)}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-end gap-2">
+                    <IncomeSheet
+                      mode="edit"
+                      income={income}
+                      triggerLabel="Edit"
+                      triggerClassName="rounded-full border border-black/10 px-3 py-2 text-xs font-medium text-zinc-700 transition"
+                    />
+                    <DeleteIncomeButton id={income.id} />
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl bg-zinc-50 px-4 py-4 text-sm leading-6 text-zinc-600">
+              No income entries yet. Add one to increase the balance.
+            </div>
+          )}
+        </section>
       </div>
 
-      <div className="pointer-events-none sticky bottom-20 mt-auto -mx-1">
+      <div className="pointer-events-none sticky bottom-22 mt-auto -mx-1">
         <div className="pointer-events-auto grid grid-cols-2 gap-3 rounded-[1.75rem] border border-black/10 bg-[color:rgba(245,241,232,0.96)] p-3 shadow-lg shadow-black/10 backdrop-blur">
-          <ActionButton href="/expenses" label="Add Expense" tone="rose" />
-          <ActionButton href="/dashboard" label="Add Income" tone="emerald" />
+          <AddExpenseSheet
+            categories={categories}
+            triggerLabel="Add Expense"
+            triggerClassName="flex h-14 items-center justify-center rounded-[1.25rem] bg-rose-600 text-sm font-semibold text-white transition active:scale-[0.99]"
+          />
+          <IncomeSheet
+            mode="create"
+            triggerLabel="Add Income"
+            triggerClassName="flex h-14 items-center justify-center rounded-[1.25rem] bg-emerald-600 text-sm font-semibold text-white transition active:scale-[0.99]"
+          />
         </div>
       </div>
     </div>
-  );
-}
-
-function ActionButton({
-  href,
-  label,
-  tone,
-}: {
-  href: string;
-  label: string;
-  tone: "rose" | "emerald";
-}) {
-  const className =
-    tone === "emerald"
-      ? "bg-emerald-600 text-white"
-      : "bg-rose-600 text-white";
-
-  return (
-    <Link
-      href={href}
-      className={`flex h-14 items-center justify-center rounded-[1.25rem] text-sm font-semibold transition active:scale-[0.99] ${className}`}
-    >
-      {label}
-    </Link>
   );
 }
 

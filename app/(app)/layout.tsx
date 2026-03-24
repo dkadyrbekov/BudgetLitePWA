@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AppNav } from "@/components/app/app-nav";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { getCurrentUser } from "@/lib/supabase/auth";
 
@@ -23,7 +23,7 @@ export default async function AppLayout({
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-[var(--background)]">
-      <header className="border-b border-black/10 bg-white px-4 py-4">
+      <header className="sticky top-0 z-20 border-b border-black/10 bg-white/95 px-4 py-4 backdrop-blur">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
@@ -39,19 +39,9 @@ export default async function AppLayout({
         </div>
       </header>
 
-      <div className="flex-1 px-4 py-6">{children}</div>
+      <div className="flex-1 px-4 py-5">{children}</div>
 
-      <nav className="sticky bottom-0 grid grid-cols-4 border-t border-black/10 bg-white">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="px-2 py-3 text-center text-xs font-medium text-zinc-700"
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      <AppNav items={navItems} />
     </div>
   );
 }
